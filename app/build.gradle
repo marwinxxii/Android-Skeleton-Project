@@ -97,7 +97,7 @@ def readVersionCode() {
     return Integer.parseInt(getVersionCodeFile().getText().trim())
 }
 
-task('increaseVersionCode') << {
+task('incrementVersionCode') << {
     _writeToFile(getVersionCodeFile(), readVersionCode() + 1)
 }
 
@@ -122,9 +122,9 @@ task('incrementVersionName') << {
 
 tasks.whenTaskAdded { task ->
     if (task.name == 'generateProdReleaseBuildConfig') {
-        task.dependsOn 'increaseVersionCode'
+        task.dependsOn 'incrementVersionCode'
     }
     if (task.name == 'generateTestLocalReleaseBuildConfig' || task.name == 'generateProdReleaseBuildConfig') {
-        task.dependsOn 'increaseVersionName'
+        task.dependsOn 'incrementVersionName'
     }
 }
