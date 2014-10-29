@@ -112,12 +112,12 @@ def readVersionName() {
 
 task('incrementVersionName') << {
     def currentVersion = readVersionName()
-    def parts = currentVersion.split('.')
+    def parts = currentVersion.tokenize('.')
     def major = Integer.parseInt(parts[0])
     def minor = Integer.parseInt(parts[1])
     def patch = Integer.parseInt(parts[2])
     def build = Integer.parseInt(parts[3])
-    _writeToFile(String.format("%d.%d.%d.%d", major, minor, patch, build + 1))
+    _writeToFile(getVersionNameFile(), String.format("%d.%d.%d.%d", major, minor, patch, build + 1))
 }
 
 tasks.whenTaskAdded { task ->
