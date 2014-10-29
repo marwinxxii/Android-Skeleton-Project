@@ -19,8 +19,8 @@ android {
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 19
-        versionCode 1
-        versionName "1.0"
+        versionCode readVersionCode()
+        versionName readVersionName()
         applicationId 'com.myapp'
     }
 
@@ -41,6 +41,7 @@ android {
     if (project.hasProperty('app.keystore')) {
         signingConfigs {
             release {
+                //properties from command line or from gradle.properties
                 storeFile file(project.getProperty('app.keystore'))
                 storePassword project.getProperty('app.keystore.password')
                 keyAlias project.getProperty('app.keystore.keyAlias')
@@ -58,7 +59,7 @@ android {
 
     productFlavors {
         dev {
-            //gradle 0.13
+            //gradle plugin 0.13
             //applicationIdSuffix '.dev'
             applicationId 'com.myapp.dev'
             buildConfigField "boolean", "REPORT_CRASHES", "false"
@@ -82,4 +83,48 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+def _writeToFile(File file, Object value) {
+    file.write(String.valueOf(value))
+}
+
+def getVersionCodeFile() {
+    return file('../versionCode.txt')
+}
+
+def readVersionCode() {
+    return Integer.parseInt(getVersionCodeFile().getText().trim())
+}
+
+task('increaseVersionCode') << {
+    _writeToFile(getVersionCodeFile(), readVersionCode() + 1)
+}
+
+def getVersionNameFile() {
+    return file('../versionName.txt')
+}
+
+//version name is stored as major.minor.patch.build
+def readVersionName() {
+    return getVersionNameFile().getText().trim()
+}
+
+task('incrementVersionName') << {
+    def currentVersion = readVersionName()
+    def parts = currentVersion.split('.')
+    def major = Integer.parseInt(parts[0])
+    def minor = Integer.parseInt(parts[1])
+    def patch = Integer.parseInt(parts[2])
+    def build = Integer.parseInt(parts[3])
+    _writeToFile(String.format("%d.%d.%d.%d", major, minor, patch, build + 1))
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'generateProdReleaseBuildConfig') {
+        task.dependsOn 'increaseVersionCode'
+    }
+    if (task.name == 'generateTestLocalReleaseBuildConfig' || task.name == 'generateProdReleaseBuildConfig') {
+        task.dependsOn 'increaseVersionName'
+    }
 }
